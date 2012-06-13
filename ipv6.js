@@ -61,7 +61,7 @@ var impl = {
 
 	load_img: function() {
 		var img,
-			rnd = "?t=" + (new Date().getTime()) + Math.random(),
+			rnd = "?t=" + (BOOMR.now()) + Math.random(),
 			timer=0, error = null,
 			that = this,
 			which = Array.prototype.shift.call(arguments),
@@ -81,7 +81,7 @@ var impl = {
 		img = new Image();
 
 		img.onload = function() {
-			that.timers[which].end = new Date().getTime();
+			that.timers[which].end = BOOMR.now();
 			clearTimeout(timer);
 			img.onload = img.onerror = null;
 			img = null;
@@ -102,7 +102,7 @@ var impl = {
 
 		img.onerror = error;
 		timer = setTimeout(error, this.timeout);
-		this.timers[which].start = new Date().getTime();
+		this.timers[which].start = BOOMR.now();
 		img.src = this[which + '_url'] + rnd;
 
 		return true;

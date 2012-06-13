@@ -446,6 +446,21 @@ else if(typeof console !== "undefined" && typeof console.log !== "undefined") {
 	boomr.log = function(m,l,s) { console.log(s + ": [" + l + "] " + m); };
 }
 
+(function() {
+	var p = w.performance || w.msPerformance || w.webkitPerformance || w.mozPerformance || {},
+	    t = p.timing || { navigationStart: 0 },
+	    boomr_now = (function() {
+		return	p.now       ||
+			p.mozNow    ||
+			p.msNow     ||
+			p.oNow      ||
+			p.webkitNow;
+	    })();
+
+	boomr.now = function() {
+		return (boomr_now ? (boomr_now() + t.navigationStart) : (new Date().getTime()));
+	};
+})();
 
 for(k in boomr) {
 	if(boomr.hasOwnProperty(k)) {
@@ -489,7 +504,7 @@ var impl = {
 	// The start method is fired on page unload.  It is called with the scope
 	// of the BOOMR.plugins.RT object
 	start: function() {
-		var t_end, t_start = new Date().getTime();
+		var t_end, t_start = BOOMR.now();
 
 		// Disable use of RT cookie by setting its name to a falsy value
 		if(!this.cookie) {
@@ -506,7 +521,7 @@ var impl = {
 			return this;
 		}
 
-		t_end = new Date().getTime();
+		t_end = BOOMR.now();
 		if(t_end - t_start > 50) {
 			// It took > 50ms to set the cookie
 			// The user Most likely has cookie prompting turned on so
@@ -619,7 +634,7 @@ BOOMR.plugins.RT = {
 			if (timer_name === 't_page') {
 				this.endTimer('t_resp', time_value);
 			}
-			impl.timers[timer_name] = {start: (typeof time_value === "number" ? time_value : new Date().getTime())};
+			impl.timers[timer_name] = {start: (typeof time_value === "number" ? time_value : BOOMR.now())};
 			impl.complete = false;
 		}
 
@@ -631,7 +646,7 @@ BOOMR.plugins.RT = {
 			impl.timers[timer_name] = impl.timers[timer_name] || {};
 			if(!("end" in impl.timers[timer_name])) {
 				impl.timers[timer_name].end =
-						(typeof time_value === "number" ? time_value : new Date().getTime());
+						(typeof time_value === "number" ? time_value : BOOMR.now());
 			}
 		}
 
@@ -694,7 +709,7 @@ BOOMR.plugins.RT = {
 				this.setTimer("t_page", impl.timers.t_load.end - impl.responseStart);
 			}
 			else {
-				this.setTimer("t_page", new Date().getTime() - impl.responseStart);
+				this.setTimer("t_page", BOOMR.now() - impl.responseStart);
 			}
 		}
 		else if(impl.timers.hasOwnProperty('t_page')) {
@@ -1049,7 +1064,7 @@ var impl = {
 	load_img: function(i, run, callback)
 	{
 		var url = this.base_url + images[i].name
-			+ '?t=' + (new Date().getTime()) + Math.random(),	// Math.random() is slow, but we get it before we start the timer
+			+ '?t=' + (BOOMR.now()) + Math.random(),	// Math.random() is slow, but we get it before we start the timer
 		    timer=0, tstart=0,
 		    img = new Image(),
 		    that=this;
@@ -1087,7 +1102,7 @@ var impl = {
 					+ Math.min(400, this.latency ? this.latency.mean : 400)
 			);
 
-		tstart = new Date().getTime();
+		tstart = BOOMR.now();
 		img.src=url;
 	},
 
@@ -1098,7 +1113,7 @@ var impl = {
 		}
 
 		if(success !== null) {
-			var lat = new Date().getTime() - tstart;
+			var lat = BOOMR.now() - tstart;
 			this.latencies.push(lat);
 		}
 		// if we've got all the latency images at this point,
@@ -1128,7 +1143,7 @@ var impl = {
 
 		var result = {
 				start: tstart,
-				end: new Date().getTime(),
+				end: BOOMR.now(),
 				t: null,
 				state: success,
 				run: run
@@ -1167,7 +1182,7 @@ var impl = {
 				bw_err:		parseFloat(bw.stderr_corrected, 10),
 				lat:		this.latency.mean,
 				lat_err:	parseFloat(this.latency.stderr, 10),
-				bw_time:	Math.round(new Date().getTime()/1000)
+				bw_time:	Math.round(BOOMR.now()/1000)
 			};
 
 		BOOMR.addVar(o);
@@ -1224,7 +1239,7 @@ var impl = {
 		// on DHCP with the same ISP may get different IPs on the same subnet
 		// every time they log in
 
-		    t_now = Math.round((new Date().getTime())/1000);	// seconds
+		    t_now = Math.round((BOOMR.now())/1000);	// seconds
 
 		// If the subnet changes or the cookie is more than 7 days old,
 		// then we recheck the bandwidth, else we just use what's in the cookie
